@@ -20,7 +20,14 @@
 
     ?>
 
-    <div class="panel-body"> 
+    <div class="panel-body">
+    <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12"> 
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <h2>Add / Update Leave</h2> <hr>
+        </div>
+      </div> 
+    </div> 
       <form id="common_form" method="post" action="<?= base_url("save") ?>" onsubmit="return save_record(this);" class="form-horizontal" >
         <div class="error"></div>
         <div class="form-group"> 
@@ -33,22 +40,28 @@
                 <label class="control-label">Select Employee <span class="text-danger">*</span><span class="text-danger error"></span></label>
                 <select name="Employee_Id" id="Employee_Id" onchange="get_employee_leaves(this)"  class="form-control select2 ">
                   <option value="0">Select Employee</option>
-                  <?php  
-                    $this->db->select("First_Name,Last_Name,Id");
-                    $this->db->order_by("First_Name","ASC");
-                    $employees = $this->db->get_where("employees",array("Deleted"=>0,"Status"=>1,"Org_Id"=>$this->org_id,"Employee_Status"=>"Active"));
-                    echo $this->db->last_query();
-                    if($employees->num_rows() > 0)
-                    {
-                      foreach ($employees->result() as $key => $value) 
-                      {  
-                        $selected = "";
-                        if(isset($record_data['Employee_Id'])){ if($record_data['Employee_Id'] == $value->Id ){ $selected = "selected='selected'"; } }
+                  <?php 
+                     $employees = $this->CI->get_employees_list();
+                     $dep_id = 0;
+                     $total_records = sizeof($employees);
+                     foreach ($employees as $key => $value) {
+                        if($dep_id == 0  ){
+                          $dep_id = $value->Dep_Id;
+                          echo '<optgroup label="'.$value->Department_Name.'">';
+                        }
 
-                        echo '<option '.$selected.' value="'.$value->Id.'">'.$value->First_Name.' '.$value->Last_Name.'</option>';
-                      }
-                    }
-                  ?>
+                        if($dep_id != $value->Dep_Id){
+                          $dep_id = $value->Dep_Id; 
+                          echo '</optgroup><optgroup label="'.$value->Department_Name.'">';
+                        }
+
+                        $employee_unique_id =  $value->Joining_Date != "0000-00-00" ? employee_unique_id($value->Joining_Date,$value->Id) : 'Not Joined';
+                         
+                        if(isset($record_data['Employee_Id'])){ if($record_data['Employee_Id'] == $value->Id ){ $selected = "selected='selected'"; } }
+                        echo '<option '.$selected.' value="'.$value->Id.'">'.$value->First_Name.' '.$value->Last_Name.' ( '.$employee_unique_id.' )</option>'; 
+                        if($total_records == $key+1){ echo '</optgroup>'; }
+                     }
+                   ?> 
                   
                 </select>
               </div>
